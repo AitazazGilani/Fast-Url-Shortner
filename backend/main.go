@@ -1,13 +1,15 @@
 package main
 
 import (
-	"goly/model"
-	"goly/server"
+	"fmt"
+	"shortUrl/model"
+	"shortUrl/server"
 )
 
 
 
 func main() {
+	fmt.Println("Setting up model and server")
 	model.Setup()
-	server.SetupAndListen()
+	server.startServer()
 }

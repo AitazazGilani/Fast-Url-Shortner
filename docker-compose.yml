@@ -1,0 +1,26 @@
+version: '3'
+services:
+
+
+  backend:
+    build:
+      context: ../backend
+    ports:
+      - "8080:8080"  # Expose Go backend on host port 8080
+    depends_on:
+      - db
+
+    
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ShortUrlDB
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"  # Expose PostgreSQL on host port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

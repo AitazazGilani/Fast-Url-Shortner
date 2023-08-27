@@ -4,7 +4,7 @@ import (
     "encoding/json"
     "fmt"
     "github.com/gofiber/fiber/v2"
-    "github.com/streadway/amqp"
+    //"github.com/streadway/amqp"
     "net/http"
 )
 
@@ -26,7 +26,7 @@ func shortenURL(c *fiber.Ctx) error {
     urlMap[shortKey] = input.OriginalURL
     storeMappingInDatabase(shortKey, input.OriginalURL)
 
-    publishURLCreationEvent(shortKey)
+     (shortKey)
 
     response := ShortURL{
         OriginalURL: input.OriginalURL,
