@@ -1,9 +1,12 @@
 package server
 
 import (
-    "encoding/json"
     "fmt"
+    "log"
+    "os"
     "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v2/middleware/logger"
+    "github.com/joho/godotenv"
     //"github.com/streadway/amqp"
     "net/http"
 )
@@ -21,12 +24,7 @@ func shortenURL(c *fiber.Ctx) error {
         return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON data"})
     }
 
-    shortKey := generateShortKey()
-
-    urlMap[shortKey] = input.OriginalURL
-    storeMappingInDatabase(shortKey, input.OriginalURL)
-
-     (shortKey)
+    shortKey := "short key logic goes here"
 
     response := ShortURL{
         OriginalURL: input.OriginalURL,
@@ -39,7 +37,7 @@ func shortenURL(c *fiber.Ctx) error {
 func redirectShortURL(c *fiber.Ctx) error {
     shortKey := c.Params("shortKey")
     if originalURL, ok := urlMap[shortKey]; ok {
-        recordClickEvent(shortKey)
+        //logic for recording click event goes here
         return c.Redirect(originalURL, http.StatusFound)
     } else {
         return c.Status(http.StatusNotFound).SendString("Short URL not found")
@@ -55,15 +53,19 @@ func startURLCreationEventConsumer() {
 }
 
 func startServer() {
+    //load env file
+    err := godotenv.Load()
+    
+    if err != nil{
+        fmt.Println(err)
+    }
+
     app := fiber.New()
+
+    app.Use(logger.New())
 
     app.Post("/shorten", shortenURL)
     app.Get("/:shortKey", redirectShortURL)
 
-    go startURLCreationEventConsumer() // Start the consumer Goroutine
-
-    err := app.Listen(":8080")
-    if err != nil {
-        fmt.Println("Error starting the server:", err)
-    }
+    log.Fatal(app.Listen(os.Getenv("SERVER_PORT")))
 }
