@@ -8,21 +8,22 @@ WORKDIR /build
 
 RUN go build -o main .
 
+
 #stage 2, run the exe
 
-FROM alpine 
+#FROM alpine 
 
-RUN adduser -S -D -H -h /app appuser
+#RUN adduser -S -D -H -h /app appuser
 
-USER appuser
+#USER appuser
 
-COPY . /app
+#COPY . /app
 
-COPY --from=builder /build/main /app/
+#COPY --from=builder /build/main /app/
 
 
-WORKDIR /app
+#WORKDIR /app
 
 EXPOSE 8080
 
-CMD ["./main"]
+#CMD ["./main"]

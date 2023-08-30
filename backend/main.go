@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
@@ -23,6 +24,8 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 	setupRoutes(app)
+
+	fmt.Println("Server running at port " + os.Getenv("SERVER_PORT"))
 	app.Listen(os.Getenv("SERVER_PORT")) // + os.Getenv("APP_PORT"))
 	// base62EncodedString := helpers.Base62Encode(9999999)
 	// fmt.Println(base62EncodedString)

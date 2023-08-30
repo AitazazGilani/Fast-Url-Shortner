@@ -3,6 +3,7 @@ package routes
 import(
 	"time"
 	"os"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	cache "github.com/AitazazGilani/Fast-Url-Shortner/backend/model"
 	"github.com/AitazazGilani/Fast-Url-Shortner/backend/helpers"
@@ -29,10 +30,12 @@ type response struct{
 func ShortenURL(c *fiber.Ctx) error{
 
 	body := new(request)
-
+	
 	if err := c.BodyParser(&body); err != nil{
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error":"Could not parse JSON, recheck JSON fields"})
 	}
+	fmt.Println("Recived request for url: " + body.URL)
+
 
 	//Rate limiting step, a user can only call shortenURL only 10 times in 30 mins time
 	r2 := cache.CreateClient(1)
@@ -40,7 +43,8 @@ func ShortenURL(c *fiber.Ctx) error{
 
 	//get user IP in cache
 	val, err := r2.Get(cache.Ctx, c.IP()).Result()
-
+	fmt.Println("Request source IP: " + c.IP())
+	fmt.Println(err.Error())
 	if err == redis.Nil{ //if not in db then set IP with quota
 		_ = r2.Set(cache.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err()
 	} else{ //if user is in the db
