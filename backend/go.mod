@@ -1,4 +1,4 @@
-module shortUrl
+module Fast-Url-Shortner
 
 go 1.20
 

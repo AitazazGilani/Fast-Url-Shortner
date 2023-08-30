@@ -1,20 +1,28 @@
-# Use the official Go image as the base image
-FROM golang:latest
+FROM golang:alpine as builder
 
-# Set the working directory inside the container
-WORKDIR /app/backend
+RUN mkdir /build
 
-# Copy the Go module files
-COPY go.mod go.sum ./
+ADD . /build/
 
-# Download and cache the Go dependencies
-RUN go mod download
+WORKDIR /build
 
-# Copy the rest of the application code
-COPY . .
-
-# Build the Go application
 RUN go build -o main .
 
-# Command to run the Go application
+#stage 2, run the exe
+
+FROM alpine 
+
+RUN adduser -S -D -H -h /app appuser
+
+USER appuser
+
+COPY . /app
+
+COPY --from=builder /build/main /app/
+
+
+WORKDIR /app
+
+EXPOSE 3000
+
 CMD ["./main"]

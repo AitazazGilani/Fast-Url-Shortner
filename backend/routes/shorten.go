@@ -3,9 +3,10 @@ package routes
 import(
 	"time"
 	"os"
-	"github.com/gofiber/fiber/v2"
 	"github.com/AitazazGilani/Fast-Url-Shortner/backend/model"
-)
+	"github.com/AitazazGilani/Fast-Url-Shortner/backend/middleware"
+	"github.com/gofiber/fiber/v2"
+	)
 
 type request struct{
 	URL				string				`json:"url"`
@@ -39,7 +40,7 @@ func ShortenURL(c *fiber.Ctx) error{
 	if err == redis.Nil{ //if not in db then set IP with quota
 		_ = r2.Set(cache.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err()
 	} else{ //if user is in the db
-		val, _ = r2.Get(cache.Ctx, c.IP().Result())  //WE are getting the quota the user has left in db and storing it in valInt
+		//val, _ = r2.Get(cache.Ctx, c.IP()).Result()  //WE are getting the quota the user has left in db and storing it in valInt
 		valInt, _ := strconv.Atoi(val) //convert string to int
 
 		if valInt <= 0{
@@ -96,9 +97,31 @@ func ShortenURL(c *fiber.Ctx) error{
 		body.Expiry = 24
 	}
 
-	
+	err = r.Set(cache.Ctx, id, body.URL, body.Expiry*3600*Time.Second).Err()
+	if err != nil{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":"Unable to connect to server"
+		})
+	}
 
-
-	//decrement db
+	resp := response{
+		URL:				body.URL,
+		CustomShort:		"",
+		Expiry:				body.Expiry,
+		XRateRemaining:		10,
+		XRateLimitReset:	30,
+	}
+	//decrement db for the rate limit
 	r2.Decr(cache.Ctx, c.IP())
+
+	val, _ = r2.Get(database.Ctx, c.IP()).Result()
+	resp.XRateRemaining,_ = strconv.Atoi(val)
+
+	ttl, _ := r2.TTL(cache.Ctx, c.IP()).Result()
+	resp.XRateLimitReset = ttl/time.Nanosecond/time.Minutes
+	
+	resp.CustomShort = os.Getenv("DOMAIN") + "/" + id
+
+
+	return c.Status(fiber.StatusOK).JSON(resp)
 }

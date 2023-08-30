@@ -4,6 +4,7 @@ import(
 	"github.com/gofiber/fiber/v2"
 	"github.com/go-redis/redis/v8"
 	"github.com/AitazazGilani/Fast-Url-Shortner/backend/model"
+	"github.com/AitazazGilani/Fast-Url-Shortner/backend/middleware"
 )
 
 
