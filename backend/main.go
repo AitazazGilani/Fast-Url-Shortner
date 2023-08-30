@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"github.com/AitazazGilani/Fast-Url-Shortner/backend/routes"
 )
@@ -23,6 +24,7 @@ func main() {
 
 	app := fiber.New()
 	app.Use(logger.New())
+	app.Use(cors.New())
 	setupRoutes(app)
 
 	fmt.Println("Server running at port " + os.Getenv("SERVER_PORT"))
