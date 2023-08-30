@@ -44,7 +44,10 @@ func ShortenURL(c *fiber.Ctx) error{
 	//get user IP in cache
 	val, err := r2.Get(cache.Ctx, c.IP()).Result()
 	fmt.Println("Request source IP: " + c.IP())
-	fmt.Println(err.Error())
+	if err != nil{
+		fmt.Println(err.Error())
+	}
+	
 	if err == redis.Nil{ //if not in db then set IP with quota
 		_ = r2.Set(cache.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err()
 	} else{ //if user is in the db
