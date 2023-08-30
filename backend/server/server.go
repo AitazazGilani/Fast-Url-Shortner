@@ -1,71 +1,28 @@
 package server
 
-import (
-    "fmt"
+import(
+	"os"
     "log"
-    "os"
-    "github.com/gofiber/fiber/v2"
+	"github.com/AitazazGilani/Fast-Url-Shortner/backend/routes"
+	"github.com/gofiber/fiber/v2"
     "github.com/gofiber/fiber/v2/middleware/logger"
     "github.com/joho/godotenv"
-    //"github.com/streadway/amqp"
-    "net/http"
 )
 
-type ShortURL struct {
-    OriginalURL string `json:"original_url"`
-    ShortKey    string `json:"short_key"`
-}
-
-var urlMap = make(map[string]string)
-
-func shortenURL(c *fiber.Ctx) error {
-    var input ShortURL
-    if err := c.BodyParser(&input); err != nil {
-        return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON data"})
-    }
-
-    shortKey := "short key logic goes here"
-
-    response := ShortURL{
-        OriginalURL: input.OriginalURL,
-        ShortKey:    shortKey,
-    }
-
-    return c.JSON(response)
-}
-
-func redirectShortURL(c *fiber.Ctx) error {
-    shortKey := c.Params("shortKey")
-    if originalURL, ok := urlMap[shortKey]; ok {
-        //logic for recording click event goes here
-        return c.Redirect(originalURL, http.StatusFound)
-    } else {
-        return c.Status(http.StatusNotFound).SendString("Short URL not found")
-    }
-}
-
-func publishURLCreationEvent(shortKey string) {
-    // Similar to the previous example
-}
-
-func startURLCreationEventConsumer() {
-    // Similar to the previous example
-}
-
-func startServer() {
+func StartServer() {
     //load env file
     err := godotenv.Load()
     
     if err != nil{
-        fmt.Println(err)
+        log.Fatal("failed to load env file")
     }
 
     app := fiber.New()
 
     app.Use(logger.New())
 
-    app.Post("/shorten", shortenURL)
-    app.Get("/:shortKey", redirectShortURL)
+    app.Post("/:url", routes.ShortenURL)
+    app.Get("/FastUrlShortner/v1", routes.ResolveURL)
 
     log.Fatal(app.Listen(os.Getenv("SERVER_PORT")))
 }

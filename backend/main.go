@@ -2,14 +2,10 @@ package main
 
 import (
 	"fmt"
-	"shortUrl/model"
-	"shortUrl/server"
+	"github.com/AitazazGilani/Fast-Url-Shortner/backend/server"
 )
 
-
-
 func main() {
-	fmt.Println("Setting up model and server")
-	model.Setup()
-	server.startServer()
+	fmt.Println("starting server at port 8080")
+	server.StartServer()
 }
