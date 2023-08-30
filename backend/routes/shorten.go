@@ -3,10 +3,14 @@ package routes
 import(
 	"time"
 	"os"
-	"github.com/AitazazGilani/Fast-Url-Shortner/backend/model"
-	"github.com/AitazazGilani/Fast-Url-Shortner/backend/middleware"
+	"github.com/go-redis/redis/v8"
+	cache "github.com/AitazazGilani/Fast-Url-Shortner/backend/model"
+	helpers "github.com/AitazazGilani/Fast-Url-Shortner/backend/middleware"
 	"github.com/gofiber/fiber/v2"
-	)
+	"github.com/asaskevich/govalidator"
+	"github.com/google/uuid"	
+	"strconv"
+)
 
 type request struct{
 	URL				string				`json:"url"`
@@ -35,7 +39,7 @@ func ShortenURL(c *fiber.Ctx) error{
 	defer r2.Close() //close client after funciton call ends
 
 	//get user IP in cache
-	val, err := r2.Get(cacheCtx, c.IP()).Result()
+	val, err := r2.Get(cache.Ctx, c.IP()).Result()
 
 	if err == redis.Nil{ //if not in db then set IP with quota
 		_ = r2.Set(cache.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err()
@@ -47,7 +51,7 @@ func ShortenURL(c *fiber.Ctx) error{
 			limit,_ := r2.TTL(cache.Ctx,c.IP()).Result()
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
 				"error":"Rate limit exceeded!",
-				"rate_limit_reset": limit/time.Nanosecond/time.Second
+				"rate_limit_reset": limit/time.Nanosecond/time.Second,
 			})
 		}
 
@@ -88,7 +92,7 @@ func ShortenURL(c *fiber.Ctx) error{
 	val, _ = r.Get(cache.Ctx, id).Result()
 	if val != ""{	//if the custom short exists in db
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": "Custom URL short is already taken"
+			"error": "Custom URL short is already taken",
 		})
 	}
 
@@ -97,10 +101,10 @@ func ShortenURL(c *fiber.Ctx) error{
 		body.Expiry = 24
 	}
 
-	err = r.Set(cache.Ctx, id, body.URL, body.Expiry*3600*Time.Second).Err()
+	err = r.Set(cache.Ctx, id, body.URL, body.Expiry*3600*time.Second).Err()
 	if err != nil{
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":"Unable to connect to server"
+			"error":"Unable to connect to server",
 		})
 	}
 
@@ -114,11 +118,11 @@ func ShortenURL(c *fiber.Ctx) error{
 	//decrement db for the rate limit
 	r2.Decr(cache.Ctx, c.IP())
 
-	val, _ = r2.Get(database.Ctx, c.IP()).Result()
+	val, _ = r2.Get(cache.Ctx, c.IP()).Result()
 	resp.XRateRemaining,_ = strconv.Atoi(val)
 
 	ttl, _ := r2.TTL(cache.Ctx, c.IP()).Result()
-	resp.XRateLimitReset = ttl/time.Nanosecond/time.Minutes
+	resp.XRateLimitReset = ttl/time.Nanosecond/time.Minute
 	
 	resp.CustomShort = os.Getenv("DOMAIN") + "/" + id
 
