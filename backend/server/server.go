@@ -21,8 +21,10 @@ func StartServer() {
 
     app.Use(logger.New())
 
-    app.Post("/:url", routes.ShortenURL)
-    app.Get("/FastUrlShortner/v1", routes.ResolveURL)
+    
+    app.Get("/:url", routes.ResolveURL)
+    app.Post("/api/v1", routes.ShortenURL)
+
 
     log.Fatal(app.Listen(os.Getenv("SERVER_PORT")))
 }

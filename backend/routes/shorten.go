@@ -5,7 +5,7 @@ import(
 	"os"
 	"github.com/go-redis/redis/v8"
 	cache "github.com/AitazazGilani/Fast-Url-Shortner/backend/model"
-	helpers "github.com/AitazazGilani/Fast-Url-Shortner/backend/middleware"
+	"github.com/AitazazGilani/Fast-Url-Shortner/backend/helpers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"	
@@ -108,13 +108,16 @@ func ShortenURL(c *fiber.Ctx) error{
 		})
 	}
 
+	defaultAPIQuotaStr := os.Getenv("API_QUOTA")
+	defaultApiQuota, _ := strconv.Atoi(defaultAPIQuotaStr)
 	resp := response{
-		URL:				body.URL,
-		CustomShort:		"",
-		Expiry:				body.Expiry,
-		XRateRemaining:		10,
-		XRateLimitReset:	30,
+		URL:             body.URL,
+		CustomShort:     "",
+		Expiry:          body.Expiry,
+		XRateRemaining:  defaultApiQuota,
+		XRateLimitReset: 30,
 	}
+
 	//decrement db for the rate limit
 	r2.Decr(cache.Ctx, c.IP())
 
